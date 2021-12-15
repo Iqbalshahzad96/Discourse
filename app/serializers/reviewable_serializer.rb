@@ -6,7 +6,6 @@ class ReviewableSerializer < ApplicationSerializer
 
   attributes(
     :id,
-    :status,
     :type,
     :topic_id,
     :topic_url,
@@ -20,6 +19,8 @@ class ReviewableSerializer < ApplicationSerializer
     :target_created_by_trust_level
   )
 
+  attribute :status_for_database, key: :status
+
   has_one :created_by, serializer: UserWithCustomFieldsSerializer, root: 'users'
   has_one :target_created_by, serializer: UserWithCustomFieldsSerializer, root: 'users'
   has_one :topic, serializer: ListableTopicSerializer
@@ -30,9 +31,6 @@ class ReviewableSerializer < ApplicationSerializer
 
   # Used to keep track of our payload attributes
   class_attribute :_payload_for_serialization
-
-  delegate :status_for_database, to: :object, private: true
-  alias status status_for_database
 
   def bundled_actions
     args = {}

@@ -216,7 +216,7 @@ RSpec.describe ReviewableQueuedPost, type: :model do
       context "when status changes from 'pending' to something else" do
         it "updates user stats" do
           user_stats.expects(:update_pending_posts)
-          reviewable.update!(status: described_class.statuses[:approved])
+          reviewable.update!(status: :approved)
         end
       end
 
