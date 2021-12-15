@@ -146,7 +146,7 @@ Discourse::Application.routes.draw do
         delete "sso_record"
       end
       get "users/:id.json" => 'users#show', defaults: { format: 'json' }
-      get 'users/:id/:username' => 'users#show', constraints: { username: RouteFormat.username }
+      get 'users/:id/:username' => 'users#show', constraints: { username: RouteFormat.username }, as: :user_show
       get 'users/:id/:username/badges' => 'users#show'
       get 'users/:id/:username/tl3_requirements' => 'users#show'
 
@@ -375,8 +375,8 @@ Discourse::Application.routes.draw do
     post "session/email-login/:token" => "session#email_login"
     get "session/otp/:token" => "session#one_time_password", constraints: { token: /[0-9a-f]+/ }
     post "session/otp/:token" => "session#one_time_password", constraints: { token: /[0-9a-f]+/ }
-    get "session/confirm-2fa" => "session#confirm_2fa_show"
-    post "session/confirm-2fa" => "session#confirm_2fa"
+    get "session/confirm-2fa" => "session#second_factor_auth_show"
+    post "session/confirm-2fa" => "session#verify_second_factor_auth"
     get "composer_messages" => "composer_messages#index"
 
     resources :static

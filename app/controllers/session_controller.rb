@@ -426,26 +426,37 @@ class SessionController < ApplicationController
     render layout: 'no_ember', locals: { hide_auth_buttons: true }
   end
 
-  def confirm_2fa_show
+  def second_factor_auth_show
     user = current_user
     raise Discourse::NotFound if !user
+
     json = {
       totp_enabled: user.totp_enabled?,
       backup_enabled: user.backup_codes_enabled?,
-      multiple_second_factor_methods: user.has_multiple_second_factor_methods?
     }
+
     if user.security_keys_enabled?
       Webauthn.stage_challenge(user, secure_session)
       json.merge!(Webauthn.allowed_credentials(user, secure_session))
       json[:security_keys_enabled] = true
     end
-    store_preloaded("user_2fa_settings", MultiJson.dump(json))
-    raise ApplicationController::RenderEmpty.new
+
+    respond_to do |format|
+      format.html do
+        store_preloaded("user_2fa_settings", MultiJson.dump(json))
+        raise ApplicationController::RenderEmpty.new
+      end
+
+      format.json do
+        render json: json
+      end
+    end
   end
 
-  def confirm_2fa
+  def verify_second_factor_auth
     raise Discourse::NotFound if !current_user
     second_factor_authentication_result = current_user.authenticate_second_factor(params, secure_session)
+
     if second_factor_authentication_result.ok
       render json: { success: true }, status: 200
     else

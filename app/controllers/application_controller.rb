@@ -964,4 +964,26 @@ class ApplicationController < ActionController::Base
       end
     end
   end
+
+  def require_second_factor_auth(callback_params:, redirect_path:)
+    nonce = SecureRandom.alphanumeric
+    data = {
+      nonce: nonce,
+      timestamp: Time.zone.now.to_i,
+      redirect_path: redirect_path,
+      callback_params: callback_params,
+      callback_path: request.path,
+      callback_method: request.method,
+    }
+    secure_session.set(
+      "current_second_factor_auth_challenge",
+      data.to_json,
+      expires: 5.minutes
+    )
+    error_data = failed_json.merge(
+      second_factor_auth_required: true,
+      nonce: nonce
+    )
+    render json: error_data, status: 403
+  end
 end
