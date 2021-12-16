@@ -966,6 +966,7 @@ class ApplicationController < ActionController::Base
   end
 
   def require_second_factor_auth(callback_params:, redirect_path:)
+    manager = SecondFactorVerificationManager.new
     nonce = SecureRandom.alphanumeric
     data = {
       nonce: nonce,
