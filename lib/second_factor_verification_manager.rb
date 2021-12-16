@@ -5,15 +5,15 @@ class SecondFactorVerificationManager
     @current_user = current_user
   end
 
-  def handle_success(&block)
+  def on_success(&block)
     @on_success = block
   end
 
-  def handle_failure(&block)
+  def on_failure(&block)
     @on_failure = block
   end
 
-  def handle_no_2fa(&block)
+  def on_no_2fa(&block)
     @no_2fa = block
   end
 

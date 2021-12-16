@@ -6,7 +6,6 @@ class Admin::UsersController < Admin::AdminController
                                     :unsuspend,
                                     :log_out,
                                     :revoke_admin,
-                                    :grant_admin,
                                     :revoke_moderation,
                                     :grant_moderation,
                                     :approve,
@@ -191,23 +190,47 @@ class Admin::UsersController < Admin::AdminController
   end
 
   def grant_admin
-    guardian.ensure_can_grant_admin!(@user)
+    user = User.find_by(id: params[:user_id]) if params[:user_id].present?
     if current_user.has_any_second_factor_methods_enabled?
-      second_factor_authentication_result = current_user.authenticate_second_factor(params, secure_session)
-      if second_factor_authentication_result.ok
-        @user.grant_admin!
-        StaffActionLogger.new(current_user).log_grant_admin(@user)
+      if nonce = params[:second_factor_nonce].presence
+        json = secure_session["current_second_factor_auth_challenge"]
+        raise Discourse::InvalidAccess.new if json.blank?
+        challenge = JSON.parse(json)
+        # TODO secure compare
+        if challenge["nonce"] != nonce
+          raise Discourse::InvalidAccess.new
+        end
+        # TODO: confirm nonce is "verified"
+        callback_params = challenge["callback_params"]
+        user_id = callback_params["user_id"]
+        user = User.find_by(id: user_id)
+        guardian.ensure_can_grant_admin!(user)
+        user.grant_admin!
+        StaffActionLogger.new(current_user).log_grant_admin(user)
         render json: success_json
       else
-        failure_payload = second_factor_authentication_result.to_h
-        if current_user.security_keys_enabled?
-          Webauthn.stage_challenge(current_user, secure_session)
-          failure_payload.merge!(Webauthn.allowed_credentials(current_user, secure_session))
-        end
-        render json: failed_json.merge(failure_payload)
+        guardian.ensure_can_grant_admin!(user)
+        nonce = SecureRandom.alphanumeric
+        callback_params = { user_id: user.id }
+        data = {
+          nonce: nonce,
+          callback_params: callback_params,
+          callback_method: request.method,
+          callback_path: request.path,
+          redirect_path: admin_user_show_path(id: user.id, username: user.username)
+        }
+        secure_session.set(
+          "current_second_factor_auth_challenge",
+          data.to_json,
+          expires: 5.minutes
+        )
+        render json: {
+          second_factor_challenge_nonce: nonce
+        }, status: 403
       end
     else
-      AdminConfirmation.new(@user, current_user).create_confirmation
+      guardian.ensure_can_grant_admin!(user)
+      AdminConfirmation.new(user, current_user).create_confirmation
       render json: success_json.merge(email_confirmation_required: true)
     end
   end
