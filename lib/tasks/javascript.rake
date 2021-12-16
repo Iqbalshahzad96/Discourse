@@ -107,8 +107,6 @@ def dependencies
       source: 'jquery.autoellipsis/src/jquery.autoellipsis.js',
       destination: 'jquery.autoellipsis-1.0.10.js'
     }, {
-      source: 'jquery-color/dist/jquery.color.js'
-    }, {
       source: 'blueimp-file-upload/js/jquery.fileupload.js',
     }, {
       source: 'blueimp-file-upload/js/jquery.iframe-transport.js',
