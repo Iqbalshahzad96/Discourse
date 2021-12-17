@@ -1,5 +1,6 @@
 export default function () {
   this.route("admin", { resetNamespace: true }, function () {
+
     this.route("dashboard", { path: "/" }, function () {
       this.route("general", { path: "/" });
       this.route("admin.dashboardModeration", {
@@ -202,5 +203,8 @@ export default function () {
         this.route("index", { path: "/" });
       }
     );
+
+    this.route('snack');
+
   });
 }

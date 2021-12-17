@@ -70,6 +70,8 @@ Discourse::Application.routes.draw do
 
     get "srv/status" => "forums#status"
 
+    get 'temp' => 'temp#index'
+
     get "wizard" => "wizard#index"
     get 'wizard/steps' => 'steps#index'
     get 'wizard/steps/:id' => "wizard#index"
@@ -77,6 +79,7 @@ Discourse::Application.routes.draw do
 
     namespace :admin, constraints: StaffConstraint.new do
       get "" => "admin#index"
+      get 'snack' => 'snack#index'
 
       get 'plugins' => 'plugins#index'
 

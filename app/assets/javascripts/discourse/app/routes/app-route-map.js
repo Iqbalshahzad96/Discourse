@@ -257,4 +257,6 @@ export default function () {
       this.route("show", { path: "/:token" });
     }
   );
+
+  this.route("temp", { path: "/temp", resetNamespace: true });
 }
